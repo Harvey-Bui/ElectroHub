@@ -148,7 +148,7 @@ Both are built on the native `<dialog>` element through `useDialog`, which provi
 ```tsx
 <Modal open={open} onClose={close} title="Cancel this order?" description="Items return to stock."
        role="alertdialog" closeOnBackdrop={false}
-       footer={<><Button variant="secondary" onClick={close} autoFocus>Keep</Button><Button variant="danger">Cancel order</Button></>} />
+       footer={<><Button variant="secondary" onClick={close} data-autofocus>Keep</Button><Button variant="danger">Cancel order</Button></>} />
 
 <Drawer open={open} onClose={close} side="right" size="md" title="Your cart" footer={<Totals />}>…</Drawer>
 ```
@@ -160,7 +160,7 @@ Both are built on the native `<dialog>` element through `useDialog`, which provi
 | `side`            | n/a                                        | `right` · `left`                                |
 | `closeOnBackdrop` | default `true`                             | always on                                       |
 
-Put `autoFocus` on the element that should receive focus first; the safe choice is usually
+Put `data-autofocus` on the element that should receive focus first; the safe choice is usually
 the least destructive one.
 
 ### Toast
@@ -261,6 +261,31 @@ truncated with a tooltip.
 
 ---
 
+### Checkbox
+
+```tsx
+<Checkbox
+  label="Featured"
+  description="Shown on the home page."
+  checked={on}
+  onChange={(e) => setOn(e.target.checked)}
+/>
+```
+
+A native checkbox with a styled box. The label text is clickable, and `description` is
+linked with `aria-describedby`.
+
+### Pagination
+
+```tsx
+<Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+```
+
+Renders Previous, "page / total" and Next inside `<nav aria-label="Pagination">`. It
+renders nothing when there's only one page.
+
+---
+
 ## Commerce (`@/components/commerce`)
 
 | Component                             | Purpose                                                                                                                                                                                                                                             |
@@ -271,6 +296,22 @@ truncated with a tooltip.
 | `Price`                               | Integer cents → `$1,899.00` in JetBrains Mono. `size`: `sm` · `md` · `lg` · `xl`. `muted` is optional.                                                                                                                                              |
 | `StockBadge`, `stockState()`          | "Out of stock" / "Only N left" / "In stock". The threshold mirrors the server (5).                                                                                                                                                                  |
 | `CartDrawer`                          | The cart panel: lines with `QuantityStepper`, remove, stock warnings, totals, free-shipping progress (`role="progressbar"`). Open it with `useCartUi().open()`.                                                                                     |
+
+| Component          | Purpose                                                                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OrderSummary`     | Line items, subtotal, shipping and total. Used on the checkout page and order pages.                                                                                                                          |
+| `OrderStatusBadge` | The order status as a text badge (Pending, Paid, Shipped, Delivered, Cancelled).                                                                                                                              |
+| `OrderProgress`    | The pending → paid → shipped → delivered tracker. Steps are an `<ol>`; finished and current steps are announced, and the current one has `aria-current="step"`. Cancelled orders get their own panel instead. |
+| `OrderDetails`     | A full order: status with an `actions` slot, the tracker, items and totals, shipping address and contact. Shared by the shopper and admin order pages.                                                        |
+
+## Admin (`@/components/admin`)
+
+| Component                    | Purpose                                                                                                                                                                                                                                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AdminLayout`                | The admin shell and auth guard. It checks the session with `GET /api/admin/me` and redirects to `/admin/login?next=…` without one. It shows a sidebar on laptops and up, and a top bar with a drawer below that. Also exports `AdminPageHeader`.                                               |
+| `StatCard`                   | One headline figure: a label, the value in JetBrains Mono, and context text. `hero` makes it bigger; `tone="warning"` marks an alert, and the text explains it.                                                                                                                                |
+| `BarList`                    | One measure across a few categories, for example orders by status or top sellers. It uses a single accent colour and plain-text labels and values, and gives no legend because there's only one series. Bars start at zero. Each row has a hover tooltip and is read as "Paid: 3 orders, 75%". |
+| `ProductForm`, `SpecsEditor` | Product create/edit form with client validation that mirrors the server. Server errors are shown on the field they belong to. A live `ProductCard` preview sits beside the form. Specs are typed (text, number, yes/no, list), so numbers are stored as numbers.                               |
 
 ## Layout (`@/components/layout`)
 

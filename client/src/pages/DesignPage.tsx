@@ -848,7 +848,7 @@ function OverlaySection() {
             <Button variant="ghost" onClick={() => setModal('none')}>
               Close
             </Button>
-            <Button onClick={() => setModal('none')} autoFocus>
+            <Button onClick={() => setModal('none')} data-autofocus>
               Got it
             </Button>
           </>
@@ -866,7 +866,7 @@ function OverlaySection() {
         description="Items go back into stock immediately. This can't be undone."
         footer={
           <>
-            <Button variant="secondary" onClick={() => setModal('none')} autoFocus>
+            <Button variant="secondary" onClick={() => setModal('none')} data-autofocus>
               Keep order
             </Button>
             <Button variant="danger" onClick={() => setModal('none')}>

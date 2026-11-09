@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { ShoppingBag, Trash2, TriangleAlert, Truck } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Trash2, TriangleAlert, Truck } from 'lucide-react';
 import { ApiError } from '@/api/http';
 import { useCart, useRemoveCartItem, useUpdateCartItem } from '@/api/queries';
 import type { CartLine } from '@/api/types';
@@ -49,7 +49,16 @@ export function CartDrawer() {
             </dd>
           </div>
         </dl>
-        <Button variant="secondary" fullWidth onClick={close}>
+        {cart.data.hasStockIssues ? (
+          <Button fullWidth size="lg" disabled>
+            Fix quantities to check out
+          </Button>
+        ) : (
+          <ButtonLink to="/checkout" onClick={close} fullWidth size="lg" rightIcon={<ArrowRight />}>
+            Checkout
+          </ButtonLink>
+        )}
+        <Button variant="ghost" fullWidth onClick={close}>
           Continue shopping
         </Button>
       </div>

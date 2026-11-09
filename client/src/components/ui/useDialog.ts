@@ -16,6 +16,10 @@ export function useDialog(open: boolean, onClose: () => void, closeOnBackdrop = 
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
+      // React doesn't render `autoFocus` as an attribute, so the native dialog
+      // can't see it. Mark the preferred first focus with `data-autofocus`
+      // (usually the safest action); otherwise the browser picks the first control.
+      dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus();
       const previous = document.documentElement.style.overflow;
       document.documentElement.style.overflow = 'hidden';
       return () => {

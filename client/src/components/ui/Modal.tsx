@@ -24,7 +24,7 @@ export interface ModalProps {
 
 /**
  * Centred dialog on the native <dialog> element: focus trap, Esc to close,
- * page inert behind it, focus restored on close. Put `autoFocus` on the
+ * page inert behind it, focus restored on close. Put `data-autofocus` on the
  * element that should receive focus first (defaults to the first focusable).
  */
 export function Modal({

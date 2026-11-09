@@ -10,11 +10,13 @@ export {
   type ButtonVariant,
 } from './Button';
 export { Card, CardDescription, CardFooter, CardHeader, CardTitle, type CardProps } from './Card';
+export { Checkbox, type CheckboxProps } from './Checkbox';
 export { Drawer, type DrawerProps } from './Drawer';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { Field, type FieldOptions } from './Field';
 export { Input, type InputProps } from './Input';
 export { Modal, type ModalProps } from './Modal';
+export { Pagination, type PaginationProps } from './Pagination';
 export { QuantityStepper, type QuantityStepperProps } from './QuantityStepper';
 export { Select, type SelectOption, type SelectProps } from './Select';
 export { Skeleton, SkeletonGroup, type SkeletonProps } from './Skeleton';

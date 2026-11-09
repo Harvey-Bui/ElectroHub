@@ -12,10 +12,10 @@ persistence (AOF and RDB) turned on.
 | Testing  | Vitest, Supertest, Testing Library                         |
 | Tooling  | ESLint (flat config), Prettier, Docker Compose             |
 
-> Status: **backend complete.** The REST API covers the catalogue, cart, checkout,
-> orders and administration (login, products, orders, low stock, dashboard), all backed
-> by Redis. **[API reference → docs/API.md](docs/API.md)**. The React storefront and
-> admin UI are next.
+> Status: **feature complete for v1.** A shopper can browse, search, check out, and view
+> or cancel their orders. An admin can sign in at `/admin` to manage orders, products and
+> stock. Everything runs on the Redis-backed REST API
+> (**[API reference → docs/API.md](docs/API.md)**).
 
 ---
 
@@ -111,10 +111,22 @@ electrohub/
 - **Showcase:** in development, open **http://localhost:5173/design** to see every token in
   both themes and every component with its variants, loading, disabled and validation
   states. The route is not included in production builds.
-- **Pages so far:** Home (hero, categories, featured, best sellers), product listing (search,
-  category chips, sort, in-stock filter, pagination), product detail (specs table,
-  quantity, add to cart) and a cart drawer. All of them use live API data. Checkout,
-  orders and the admin UI come next.
+- **Storefront pages:**
+  - Home, product listing and product detail.
+  - Cart drawer.
+  - **Checkout** (`/checkout`): validation, inline server errors, and stock conflicts
+    handled.
+  - **Order confirmation and history** (`/orders`, `/orders/:id`): a status tracker, and
+    cancellation with a confirmation step.
+- **Admin console** (`/admin`): sign in with the account from `npm run admin:create`.
+  - **Dashboard:** live figures from Redis, orders by status, top sellers, recent orders,
+    and low stock.
+  - **Orders:** filter by status, and move orders along their allowed status changes.
+  - **Products:** search, create, edit (typed specs editor, live preview) and delete.
+  - **Inventory:** low-stock list with restocking on the page.
+  - **Sessions:** an expired session sends you back to the login page and returns you
+    afterwards.
+  - The admin code loads separately, so shoppers never download it.
 
 ### Layering (server)
 

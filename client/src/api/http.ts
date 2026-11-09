@@ -11,6 +11,31 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
   }
+
+  /** The `error.details` payload (e.g. `{ available: 2 }` or a list of field issues). */
+  get details(): unknown {
+    return (this.body as { error?: { details?: unknown } } | undefined)?.error?.details;
+  }
+
+  /**
+   * For 400 VALIDATION_ERROR responses: `{ "shippingAddress.city": "Required" }`,
+   * keyed by the same dotted path the server reports, for showing errors inline.
+   */
+  get fieldErrors(): Record<string, string> {
+    if (this.code !== 'VALIDATION_ERROR' || !Array.isArray(this.details)) return {};
+    const out: Record<string, string> = {};
+    for (const issue of this.details as Array<{ path?: string; message?: string }>) {
+      if (issue.path && issue.message && !(issue.path in out)) out[issue.path] = issue.message;
+    }
+    return out;
+  }
+}
+
+/** Human-readable message for any thrown value. */
+export function errorMessage(error: unknown, fallback = 'Something went wrong. Please try again.') {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof TypeError) return "Can't reach the store. Check your connection.";
+  return fallback;
 }
 
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown };

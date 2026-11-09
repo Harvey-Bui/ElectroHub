@@ -20,7 +20,7 @@ const navLink = ({ isActive }: { isActive: boolean }) =>
 
 /**
  * Sticky, translucent top bar.
- * ≥ lg: logo · Home · All products · Categories · search · theme · cart
+ * ≥ lg: logo · Home · All products · Orders · Categories · search · theme · cart
  * < lg: menu · logo · theme · cart, with search under the bar and the
  *       links in a left drawer.
  */
@@ -66,6 +66,11 @@ export function Navbar() {
                 className={() => navLink({ isActive: onProducts && !location.search })}
               >
                 All products
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/orders" className={navLink}>
+                Orders
               </NavLink>
             </li>
             <li>
@@ -131,6 +136,11 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           <li>
             <NavLink to="/products" end onClick={onClose} className={item}>
               All products
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/orders" onClick={onClose} className={item}>
+              Your orders
             </NavLink>
           </li>
         </ul>
