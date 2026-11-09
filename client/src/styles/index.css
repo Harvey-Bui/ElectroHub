@@ -1,8 +1,218 @@
 @import 'tailwindcss';
+@import './tokens.css';
+@import './theme.css';
 @config '../../tailwind.config.ts';
 
 @layer base {
   html {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    background-color: var(--eh-bg);
+    color: var(--eh-text-primary);
+    font-family: var(--eh-font-sans);
+    font-feature-settings: 'cv11', 'ss01', 'ss03'; /* Inter: open digits, straight l */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--eh-navbar-height) + var(--eh-space-4));
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--eh-bg);
+    transition:
+      background-color var(--eh-duration-base) var(--eh-ease-standard),
+      color var(--eh-duration-base) var(--eh-ease-standard);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: var(--eh-tracking-tight);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--eh-accent);
+    color: var(--eh-accent-contrast);
+  }
+
+  /* One visible, consistent focus ring for keyboard users everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--eh-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--eh-radius-xs);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* Page container: centred, max width, responsive gutters on the 4px grid. */
+  .eh-container {
+    width: 100%;
+    max-width: var(--eh-container-max);
+    margin-inline: auto;
+    padding-inline: var(--eh-space-4);
+  }
+  @media (width >= 48rem) {
+    .eh-container {
+      padding-inline: var(--eh-space-6);
+    }
+  }
+  @media (width >= 80rem) {
+    .eh-container {
+      padding-inline: var(--eh-space-8);
+    }
+  }
+
+  /* Prices and specs: tabular figures in JetBrains Mono */
+  .eh-numeric {
+    font-family: var(--eh-font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'zero' 0;
+  }
+
+  .eh-eyebrow {
+    font-size: var(--eh-text-xs);
+    line-height: var(--eh-text-xs-lh);
+    font-weight: var(--eh-weight-semibold);
+    letter-spacing: var(--eh-tracking-wide);
+    text-transform: uppercase;
+    color: var(--eh-accent-text);
+  }
+
+  /* Native <dialog> used by Modal and Drawer */
+  dialog.eh-dialog {
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    overflow: visible;
+  }
+  dialog.eh-dialog::backdrop {
+    background-color: var(--eh-overlay);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition:
+      opacity var(--eh-duration-base) var(--eh-ease-standard),
+      overlay var(--eh-duration-base) allow-discrete,
+      display var(--eh-duration-base) allow-discrete;
+  }
+  dialog.eh-dialog[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    dialog.eh-dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* Enter/exit transitions. `allow-discrete` animates the [open] toggle itself. */
+  dialog.eh-dialog {
+    transition:
+      opacity var(--eh-duration-base) var(--eh-ease-standard),
+      transform var(--eh-duration-slow) var(--eh-ease-standard),
+      overlay var(--eh-duration-base) allow-discrete,
+      display var(--eh-duration-base) allow-discrete;
+  }
+
+  dialog.eh-modal {
+    margin: auto;
+    width: min(100vw - 2 * var(--eh-space-4), var(--eh-modal-width, 32rem));
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  dialog.eh-modal[open] {
+    opacity: 1;
+    transform: none;
+  }
+  @starting-style {
+    dialog.eh-modal[open] {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  dialog.eh-drawer {
+    position: fixed;
+    inset-block: 0;
+    height: 100dvh;
+    margin: 0;
+    width: min(100vw, var(--eh-drawer-width, 26rem));
+  }
+  dialog.eh-drawer[data-side='right'] {
+    inset-inline: auto 0;
+    transform: translateX(100%);
+  }
+  dialog.eh-drawer[data-side='left'] {
+    inset-inline: 0 auto;
+    transform: translateX(-100%);
+  }
+  dialog.eh-drawer[open] {
+    transform: none;
+  }
+  @starting-style {
+    dialog.eh-drawer[data-side='right'][open] {
+      transform: translateX(100%);
+    }
+    dialog.eh-drawer[data-side='left'][open] {
+      transform: translateX(-100%);
+    }
+  }
+
+  .eh-skeleton {
+    background-image: linear-gradient(
+      90deg,
+      var(--eh-surface-elevated) 25%,
+      var(--eh-border) 50%,
+      var(--eh-surface-elevated) 75%
+    );
+    background-size: 200% 100%;
+    animation: eh-shimmer 1.6s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .eh-skeleton {
+      animation: none;
+    }
+  }
+}
+
+/* Skeleton shimmer */
+@keyframes eh-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes eh-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes eh-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

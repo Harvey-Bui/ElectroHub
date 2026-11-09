@@ -194,11 +194,16 @@ export class ProductRepository {
    * - no filters: one ZRANGE on the sort index with offset/limit;
    * - with filters: SINTER of the category/brand/featured sets (or a price
    *   ZRANGE BYSCORE), then ZMSCORE for sorting and HMGET for stock.
+   * - text search (`q`): HMGET name/brand/category for the candidates above
+   *   and keep those containing every search word. This is linear in the
+   *   candidate set, which is fine for a catalogue of hundreds of products;
+   *   a larger catalogue would add a word index (or RediSearch).
    */
   async list(query: ProductQuery = {}): Promise<ProductPage> {
     const q = productQuerySchema.parse(query);
     const sortKey = this.sortKey(q.sort);
     const descending = q.sort !== 'price-asc';
+    const terms = q.q ? q.q.toLowerCase().split(/\s+/).filter(Boolean) : [];
 
     const filterSets: string[] = [];
     if (q.category) filterSets.push(this.keys.productsByCategory(q.category));
@@ -207,7 +212,12 @@ export class ProductRepository {
     const hasPriceFilter = q.minPriceCents !== undefined || q.maxPriceCents !== undefined;
 
     // Fast path: the sort index already holds every product in order.
-    if (filterSets.length === 0 && !hasPriceFilter && q.inStock === undefined) {
+    if (
+      filterSets.length === 0 &&
+      !hasPriceFilter &&
+      q.inStock === undefined &&
+      terms.length === 0
+    ) {
       const [total, ids] = await Promise.all([
         this.client.zCard(sortKey),
         this.client.zRange(sortKey, q.offset, q.offset + q.limit - 1, { REV: descending }),
@@ -234,6 +244,16 @@ export class ProductRepository {
       ids = ids.filter((_, i) => {
         const price = prices[i];
         return price != null && price >= min && price <= max;
+      });
+    }
+
+    if (ids.length > 0 && terms.length > 0) {
+      const fields = await Promise.all(
+        ids.map((id) => this.client.hmGet(this.keys.product(id), ['name', 'brand', 'category'])),
+      );
+      ids = ids.filter((_, i) => {
+        const haystack = fields[i]!.join(' ').toLowerCase().replace(/-/g, ' ');
+        return terms.every((term) => haystack.includes(term));
       });
     }
 

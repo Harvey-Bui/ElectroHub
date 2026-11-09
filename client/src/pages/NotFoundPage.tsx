@@ -1,13 +1,24 @@
-import { Link } from 'react-router';
+import { Compass } from 'lucide-react';
+import { ButtonLink, EmptyState } from '@/components/ui';
 
 export function NotFoundPage() {
   return (
-    <section className="space-y-4 text-center">
-      <h1 className="text-3xl font-bold">Page not found</h1>
-      <p className="text-slate-600">The page you are looking for does not exist.</p>
-      <Link to="/" className="font-medium text-brand-600 hover:text-brand-700">
-        Back to home
-      </Link>
-    </section>
+    <div className="eh-container py-16 md:py-24">
+      <EmptyState
+        headingLevel="h2"
+        icon={<Compass />}
+        title="Page not found"
+        description="The page you're looking for doesn't exist or has moved."
+        actions={
+          <>
+            <ButtonLink to="/">Back to home</ButtonLink>
+            <ButtonLink to="/products" variant="secondary">
+              Browse products
+            </ButtonLink>
+          </>
+        }
+      />
+      <h1 className="sr-only">404, page not found</h1>
+    </div>
   );
 }

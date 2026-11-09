@@ -1,0 +1,223 @@
+/*
+ * ElectroHub design tokens
+ * ────────────────────────
+ * The single source of design values. Components never hard-code colours,
+ * sizes or timings; they use Tailwind utilities that resolve to these
+ * variables (see theme.css), or `var(--eh-…)` directly.
+ *
+ * Themes: dark is the default (`:root`). `[data-theme='light']` overrides the
+ * colour and shadow tokens. A theme can be scoped to any subtree by setting
+ * data-theme on an element (the /design page shows both side by side).
+ *
+ * Contrast: text tokens meet WCAG AA (≥ 4.5:1) on bg, surface and elevated
+ * surfaces in both themes; white on --eh-accent is ≥ 4.5:1.
+ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* ── Colour: surfaces ─────────────────────────────────────────── */
+  --eh-bg: #07090d; /* page background */
+  --eh-surface: #0d1117; /* cards, panels */
+  --eh-surface-elevated: #141a23; /* menus, modals, drawers, popovers */
+  --eh-surface-sunken: #05070a; /* inputs, wells */
+  --eh-overlay: rgb(2 4 8 / 0.72); /* modal/drawer backdrop */
+
+  /* ── Colour: borders ──────────────────────────────────────────── */
+  --eh-border: #1f2631;
+  --eh-border-strong: #2e3746;
+
+  /* ── Colour: text ─────────────────────────────────────────────── */
+  --eh-text-primary: #f3f6fa;
+  --eh-text-secondary: #aab4c3;
+  --eh-text-muted: #7c8799;
+  --eh-text-inverse: #07090d;
+
+  /* ── Colour: accent (electric blue) ───────────────────────────── */
+  --eh-accent: #2466f5; /* fills; white text on it is 4.9:1 */
+  --eh-accent-hover: #3878ff;
+  --eh-accent-active: #1a55d6;
+  --eh-accent-text: #6ea8ff; /* accent-coloured text/links on dark surfaces */
+  --eh-accent-soft: rgb(36 102 245 / 0.14); /* tinted backgrounds */
+  --eh-accent-contrast: #ffffff; /* text on accent fills */
+  --eh-accent-glow: rgb(56 120 255 / 0.35);
+
+  /* ── Colour: status ───────────────────────────────────────────── */
+  --eh-success: #34d399;
+  --eh-success-soft: rgb(52 211 153 / 0.13);
+  --eh-warning: #fbbf24;
+  --eh-warning-soft: rgb(251 191 36 / 0.13);
+  --eh-danger: #f87171;
+  --eh-danger-soft: rgb(248 113 113 / 0.13);
+  --eh-danger-fill: #dc2626; /* destructive buttons; white text 4.8:1 */
+
+  /* ── Focus ────────────────────────────────────────────────────── */
+  --eh-focus-ring: #7fb2ff;
+  --eh-focus-ring-offset: var(--eh-bg);
+
+  /* ── Elevation ────────────────────────────────────────────────── */
+  --eh-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --eh-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
+  --eh-shadow-md: 0 6px 16px -4px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  --eh-shadow-lg: 0 18px 40px -12px rgb(0 0 0 / 0.7), 0 6px 14px -6px rgb(0 0 0 / 0.5);
+  --eh-shadow-xl: 0 32px 64px -20px rgb(0 0 0 / 0.8);
+  --eh-shadow-glow: 0 0 0 1px rgb(56 120 255 / 0.35), 0 8px 32px -8px var(--eh-accent-glow);
+
+  /* Product imagery stage (behind product photos/illustrations) */
+  --eh-stage-from: #121a28;
+  --eh-stage-to: #0a0e15;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --eh-bg: #f6f7f9;
+  --eh-surface: #ffffff;
+  --eh-surface-elevated: #ffffff;
+  --eh-surface-sunken: #f0f2f5;
+  --eh-overlay: rgb(15 20 30 / 0.45);
+
+  --eh-border: #e2e6ec;
+  --eh-border-strong: #c9d0da;
+
+  --eh-text-primary: #0b0f17;
+  --eh-text-secondary: #46505f;
+  --eh-text-muted: #687384; /* 4.7:1 on white */
+  --eh-text-inverse: #ffffff;
+
+  --eh-accent: #1f5fe0; /* white text 5.5:1 */
+  --eh-accent-hover: #1a52c4;
+  --eh-accent-active: #1646a8;
+  --eh-accent-text: #1a55d1; /* 5.9:1 on white */
+  --eh-accent-soft: rgb(31 95 224 / 0.09);
+  --eh-accent-contrast: #ffffff;
+  --eh-accent-glow: rgb(31 95 224 / 0.22);
+
+  --eh-success: #047857;
+  --eh-success-soft: rgb(4 120 87 / 0.1);
+  --eh-warning: #a15c00;
+  --eh-warning-soft: rgb(217 119 6 / 0.12);
+  --eh-danger: #c81e1e;
+  --eh-danger-soft: rgb(200 30 30 / 0.08);
+  --eh-danger-fill: #c81e1e;
+
+  --eh-focus-ring: #1f5fe0;
+  --eh-focus-ring-offset: var(--eh-bg);
+
+  --eh-shadow-xs: 0 1px 2px rgb(15 23 42 / 0.06);
+  --eh-shadow-sm: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.05);
+  --eh-shadow-md: 0 6px 16px -4px rgb(15 23 42 / 0.1), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+  --eh-shadow-lg: 0 18px 40px -12px rgb(15 23 42 / 0.18), 0 6px 14px -6px rgb(15 23 42 / 0.08);
+  --eh-shadow-xl: 0 32px 64px -20px rgb(15 23 42 / 0.25);
+  --eh-shadow-glow: 0 0 0 1px rgb(31 95 224 / 0.3), 0 8px 28px -10px var(--eh-accent-glow);
+
+  --eh-stage-from: #eef2f8;
+  --eh-stage-to: #e2e8f1;
+}
+
+/* Theme-independent tokens */
+:root {
+  /* ── Typography: families ─────────────────────────────────────── */
+  --eh-font-sans:
+    'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Prices, SKUs and technical specifications */
+  --eh-font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  /* ── Typography: scale (size / line-height) ───────────────────── */
+  --eh-text-xs: 0.75rem; /* 12px */
+  --eh-text-xs-lh: 1rem;
+  --eh-text-sm: 0.875rem; /* 14px */
+  --eh-text-sm-lh: 1.25rem;
+  --eh-text-base: 1rem; /* 16px */
+  --eh-text-base-lh: 1.5rem;
+  --eh-text-lg: 1.125rem; /* 18px */
+  --eh-text-lg-lh: 1.75rem;
+  --eh-text-xl: 1.25rem; /* 20px */
+  --eh-text-xl-lh: 1.75rem;
+  --eh-text-2xl: 1.5rem; /* 24px */
+  --eh-text-2xl-lh: 2rem;
+  --eh-text-3xl: 1.875rem; /* 30px */
+  --eh-text-3xl-lh: 2.25rem;
+  --eh-text-4xl: 2.25rem; /* 36px */
+  --eh-text-4xl-lh: 2.5rem;
+  --eh-text-5xl: 3rem; /* 48px */
+  --eh-text-5xl-lh: 1.05;
+  --eh-text-6xl: 3.75rem; /* 60px */
+  --eh-text-6xl-lh: 1;
+
+  --eh-weight-regular: 400;
+  --eh-weight-medium: 500;
+  --eh-weight-semibold: 600;
+  --eh-weight-bold: 700;
+
+  --eh-tracking-tight: -0.025em; /* headings */
+  --eh-tracking-normal: 0;
+  --eh-tracking-wide: 0.08em; /* eyebrows / overlines */
+
+  /* ── Spacing: 4px grid ────────────────────────────────────────── */
+  --eh-space-unit: 0.25rem; /* 4px. Tailwind `p-1` = 1 unit, `p-4` = 16px */
+  --eh-space-0: 0;
+  --eh-space-1: 0.25rem; /* 4 */
+  --eh-space-2: 0.5rem; /* 8 */
+  --eh-space-3: 0.75rem; /* 12 */
+  --eh-space-4: 1rem; /* 16 */
+  --eh-space-5: 1.25rem; /* 20 */
+  --eh-space-6: 1.5rem; /* 24 */
+  --eh-space-8: 2rem; /* 32 */
+  --eh-space-10: 2.5rem; /* 40 */
+  --eh-space-12: 3rem; /* 48 */
+  --eh-space-16: 4rem; /* 64 */
+  --eh-space-20: 5rem; /* 80 */
+  --eh-space-24: 6rem; /* 96 */
+  --eh-space-32: 8rem; /* 128 */
+
+  /* ── Radii ────────────────────────────────────────────────────── */
+  --eh-radius-xs: 0.25rem; /* 4 */
+  --eh-radius-sm: 0.375rem; /* 6 */
+  --eh-radius-md: 0.5rem; /* 8: inputs, buttons */
+  --eh-radius-lg: 0.75rem; /* 12: cards */
+  --eh-radius-xl: 1rem; /* 16: modals, large cards */
+  --eh-radius-2xl: 1.5rem; /* 24: hero panels */
+  --eh-radius-full: 9999px;
+
+  /* ── Motion ───────────────────────────────────────────────────── */
+  --eh-duration-fast: 120ms;
+  --eh-duration-base: 200ms;
+  --eh-duration-slow: 320ms;
+  --eh-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --eh-ease-emphasized: cubic-bezier(0.3, 0, 0, 1.15);
+  --eh-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ── Layout ───────────────────────────────────────────────────── */
+  --eh-container-max: 80rem; /* 1280px */
+  --eh-navbar-height: 4rem; /* 64px */
+  --eh-control-sm: 2rem; /* 32px control heights */
+  --eh-control-md: 2.5rem; /* 40px */
+  --eh-control-lg: 3rem; /* 48px */
+
+  /* ── Breakpoints ──────────────────────────────────────────────── */
+  /* CSS variables can't be used inside @media, so theme.css repeats these
+     values for Tailwind's sm/md/lg/xl/2xl variants. Use these from JS
+     (matchMedia) and keep both in sync. */
+  --eh-bp-sm: 40rem; /* 640px: large phones */
+  --eh-bp-md: 48rem; /* 768px: tablets */
+  --eh-bp-lg: 64rem; /* 1024px: laptops */
+  --eh-bp-xl: 80rem; /* 1280px: desktops */
+  --eh-bp-2xl: 96rem; /* 1536px: large monitors */
+
+  /* ── Layers ───────────────────────────────────────────────────── */
+  --eh-z-dropdown: 30;
+  --eh-z-sticky: 40;
+  --eh-z-overlay: 50;
+  --eh-z-toast: 60;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --eh-duration-fast: 0ms;
+    --eh-duration-base: 0ms;
+    --eh-duration-slow: 0ms;
+  }
+}

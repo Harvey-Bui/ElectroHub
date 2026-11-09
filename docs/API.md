@@ -90,15 +90,16 @@ Lists all 7 categories with live product counts (from `SCARD` on the category se
 
 Paginated product list.
 
-| Query                            | Type                                                                                            | Description                                                   |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `category`                       | `gaming-laptops` \| `laptops` \| `pcs` \| `mice` \| `monitors` \| `headphones` \| `microphones` | Filter by category                                            |
-| `brand`                          | string                                                                                          | Filter by brand, case-insensitive (`asus`, `Western Digital`) |
-| `minPriceCents`, `maxPriceCents` | integer ≥ 0                                                                                     | Price range, inclusive. `min` must be ≤ `max`.                |
-| `inStock`                        | `true` \| `false`                                                                               | Only products in stock, or only out-of-stock products         |
-| `featured`                       | `true` \| `false`                                                                               | Only featured products                                        |
-| `sort`                           | `newest` (default) \| `price-asc` \| `price-desc` \| `best-selling`                             | Sort order                                                    |
-| `page`, `limit`                  | integer                                                                                         | Pagination                                                    |
+| Query                            | Type                                                                                            | Description                                                                  |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `q`                              | string (1–100 chars)                                                                            | Search: every word must appear in name, brand or category (case-insensitive) |
+| `category`                       | `gaming-laptops` \| `laptops` \| `pcs` \| `mice` \| `monitors` \| `headphones` \| `microphones` | Filter by category                                                           |
+| `brand`                          | string                                                                                          | Filter by brand, case-insensitive (`asus`, `Western Digital`)                |
+| `minPriceCents`, `maxPriceCents` | integer ≥ 0                                                                                     | Price range, inclusive. `min` must be ≤ `max`.                               |
+| `inStock`                        | `true` \| `false`                                                                               | Only products in stock, or only out-of-stock products                        |
+| `featured`                       | `true` \| `false`                                                                               | Only featured products                                                       |
+| `sort`                           | `newest` (default) \| `price-asc` \| `price-desc` \| `best-selling`                             | Sort order                                                                   |
+| `page`, `limit`                  | integer                                                                                         | Pagination                                                                   |
 
 `200` response:
 

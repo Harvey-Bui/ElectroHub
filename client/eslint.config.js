@@ -21,7 +21,23 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-refresh/only-export-components': [
+        'warn',
+        {
+          allowConstantExport: true,
+          // Hooks and pure helpers that intentionally live next to their component/provider.
+          allowExportNames: [
+            'useToast',
+            'useTheme',
+            'useCartUi',
+            'buttonClasses',
+            'controlBase',
+            'controlSizes',
+            'isPlaceholderImage',
+            'stockState',
+          ],
+        },
+      ],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',

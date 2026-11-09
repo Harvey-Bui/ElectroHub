@@ -84,14 +84,37 @@ electrohub/
 │   └── tests/                Vitest + Supertest (unit and real-Redis integration)
 └── client/                   React SPA (independent npm package)
     ├── vite.config.ts        Dev proxy /api → server, Vitest config
-    ├── tailwind.config.ts    Design tokens (loaded through @config in index.css)
+    ├── tailwind.config.ts    Content globs only (design values live in tokens.css)
     └── src/
-        ├── api/              Typed fetch wrapper and one module per resource
-        ├── components/       Reusable UI
-        ├── pages/            Route-level views
-        ├── store/            Client state (cart and session, coming later)
-        └── styles/           Tailwind entry point
+        ├── styles/
+        │   ├── tokens.css    Design tokens: colours (dark + light), type, 4px spacing, radii, shadows, motion, breakpoints
+        │   ├── theme.css     Maps tokens onto Tailwind utilities (bg-surface, text-fg-muted, …)
+        │   └── index.css     Base styles, focus ring, dialog/skeleton animations
+        ├── api/              Typed fetch wrapper, endpoint functions, TanStack Query hooks
+        ├── components/       ui/ (primitives) · commerce/ · layout/. See components/README.md
+        ├── hooks/            useAddToCartWithFeedback
+        ├── pages/            Home, Products, Product, NotFound, Design (dev only)
+        ├── store/            Theme and cart-drawer state (React context)
+        └── lib/              cn(), price/spec formatting
 ```
+
+### Frontend design system
+
+- **Look:** dark first, with an optional light theme (toggle in the navbar, remembered per
+  browser) and an electric-blue accent.
+- **Fonts:** Inter for interface text and JetBrains Mono for prices and specifications.
+  Both are self-hosted through `@fontsource`, so there are no third-party font requests.
+- **Tokens:** every colour, size and timing is a token in
+  [client/src/styles/tokens.css](client/src/styles/tokens.css). Tailwind's default palette
+  is disabled, so components can only use semantic tokens.
+- **Components:** documented in [client/src/components/README.md](client/src/components/README.md).
+- **Showcase:** in development, open **http://localhost:5173/design** to see every token in
+  both themes and every component with its variants, loading, disabled and validation
+  states. The route is not included in production builds.
+- **Pages so far:** Home (hero, categories, featured, best sellers), product listing (search,
+  category chips, sort, in-stock filter, pagination), product detail (specs table,
+  quantity, add to cart) and a cart drawer. All of them use live API data. Checkout,
+  orders and the admin UI come next.
 
 ### Layering (server)
 
@@ -216,26 +239,26 @@ Both packages and Docker Compose read the **repository-root `.env`** file. The s
 reads `server/.env` when that file exists. Only variables prefixed with `VITE_` are sent to
 the browser.
 
-| Variable                                                  | Default                                                   | Used by                         |
-| --------------------------------------------------------- | --------------------------------------------------------- | ------------------------------- |
-| `NODE_ENV`                                                | `development`                                             | server                          |
-| `PORT`                                                    | `4000`                                                    | server                          |
-| `CORS_ORIGIN`                                             | `http://localhost:5173`                                   | server (comma-separated)        |
-| `REDIS_URL`                                               | `redis://localhost:6379`                                  | server                          |
-| `REDIS_PASSWORD`                                          | _(empty)_                                                 | server, compose                 |
-| `REDIS_KEY_PREFIX`                                        | `electrohub:`                                             | server                          |
-| `REDIS_PORT`                                              | `6379`                                                    | compose (host port)             |
-| `LOW_STOCK_THRESHOLD`                                     | `5`                                                       | server (low-stock index)        |
-| `CART_TTL_DAYS`                                           | `30`                                                      | server (cart expiry)            |
-| `FREE_SHIPPING_THRESHOLD_CENTS`                           | `10000`                                                   | server (checkout)               |
-| `SHIPPING_FLAT_CENTS`                                     | `999`                                                     | server (checkout)               |
-| `COOKIE_SECRET`                                           | dev-only fallback; **required in production** (32+ chars) | server (cookie signing)         |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD`                       | `admin` / _(empty)_                                       | `admin:create` script only      |
-| `ADMIN_SESSION_TTL_HOURS`                                 | `8`                                                       | server                          |
-| `ADMIN_LOGIN_MAX_ATTEMPTS` / `ADMIN_LOGIN_WINDOW_MINUTES` | `5` / `15`                                                | server (login lockout)          |
-| `TRUST_PROXY`                                             | `false`                                                   | server (behind a reverse proxy) |
-| `VITE_API_BASE_URL`                                       | _(empty = same origin)_                                   | client                          |
-| `VITE_DEV_API_PROXY_TARGET`                               | `http://localhost:4000`                                   | client dev server               |
+| Variable                                                  | Default                                                   | Used by                                                                                        |
+| --------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                                | `development`                                             | server. Set by the host, **not in `.env`**: Vite reads `.env` too and would build a dev bundle |
+| `PORT`                                                    | `4000`                                                    | server                                                                                         |
+| `CORS_ORIGIN`                                             | `http://localhost:5173`                                   | server (comma-separated)                                                                       |
+| `REDIS_URL`                                               | `redis://localhost:6379`                                  | server                                                                                         |
+| `REDIS_PASSWORD`                                          | _(empty)_                                                 | server, compose                                                                                |
+| `REDIS_KEY_PREFIX`                                        | `electrohub:`                                             | server                                                                                         |
+| `REDIS_PORT`                                              | `6379`                                                    | compose (host port)                                                                            |
+| `LOW_STOCK_THRESHOLD`                                     | `5`                                                       | server (low-stock index)                                                                       |
+| `CART_TTL_DAYS`                                           | `30`                                                      | server (cart expiry)                                                                           |
+| `FREE_SHIPPING_THRESHOLD_CENTS`                           | `10000`                                                   | server (checkout)                                                                              |
+| `SHIPPING_FLAT_CENTS`                                     | `999`                                                     | server (checkout)                                                                              |
+| `COOKIE_SECRET`                                           | dev-only fallback; **required in production** (32+ chars) | server (cookie signing)                                                                        |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD`                       | `admin` / _(empty)_                                       | `admin:create` script only                                                                     |
+| `ADMIN_SESSION_TTL_HOURS`                                 | `8`                                                       | server                                                                                         |
+| `ADMIN_LOGIN_MAX_ATTEMPTS` / `ADMIN_LOGIN_WINDOW_MINUTES` | `5` / `15`                                                | server (login lockout)                                                                         |
+| `TRUST_PROXY`                                             | `false`                                                   | server (behind a reverse proxy)                                                                |
+| `VITE_API_BASE_URL`                                       | _(empty = same origin)_                                   | client                                                                                         |
+| `VITE_DEV_API_PROXY_TARGET`                               | `http://localhost:4000`                                   | client dev server                                                                              |
 
 ## Scripts
 

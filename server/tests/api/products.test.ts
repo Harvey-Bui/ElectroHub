@@ -65,7 +65,23 @@ describe.skipIf(!t)('Product & category endpoints', () => {
       expect(ids(await api().get('/api/products?inStock=false'))).toEqual(['mouse-b']);
     });
 
+    it('searches name, brand and category with every word required', async () => {
+      expect(ids(await api().get('/api/products?q=alpha&sort=price-asc'))).toEqual([
+        'mouse-a',
+        'monitor-a',
+        'laptop-a',
+      ]);
+      expect(ids(await api().get('/api/products?q=Alpha%20MOUSE'))).toEqual(['mouse-a']);
+      expect(ids(await api().get('/api/products?q=lenovo'))).toEqual(['laptop-a']);
+      expect(ids(await api().get('/api/products?q=mice'))).toEqual(['mouse-b', 'mouse-a']);
+      expect(ids(await api().get('/api/products?q=mouse&inStock=true'))).toEqual(['mouse-a']);
+      const none = await api().get('/api/products?q=toaster');
+      expect(none.body.data).toEqual([]);
+      expect(none.body.pagination.total).toBe(0);
+    });
+
     it.each([
+      ['q=', 'q'],
       ['sort=cheapest', 'sort'],
       ['minPriceCents=-5', 'minPriceCents'],
       ['minPriceCents=900&maxPriceCents=100', 'minPriceCents'],

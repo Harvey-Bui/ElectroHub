@@ -29,6 +29,7 @@ export type PaginationQuery = z.infer<typeof paginationQuery>;
 
 export const productListQuery = paginationQuery
   .extend({
+    q: z.string().trim().min(1).max(100).optional(),
     category: categorySchema.optional(),
     brand: z.string().trim().min(1).max(80).optional(),
     minPriceCents: cents.optional(),

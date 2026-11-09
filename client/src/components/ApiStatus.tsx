@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { fetchHealth, type HealthResponse } from '@/api/health';
+import { cn } from '@/lib/cn';
 
 type State =
   | { kind: 'loading' }
   | { kind: 'loaded'; health: HealthResponse }
   | { kind: 'unreachable'; message: string };
 
-/** Live status of the API server and its Redis database, read from GET /api/health. */
-export function ApiStatus() {
+/**
+ * Live status of the API server and its Redis database (GET /api/health).
+ * `compact` renders one line for the footer.
+ */
+export function ApiStatus({ compact = false }: { compact?: boolean }) {
   const [state, setState] = useState<State>({ kind: 'loading' });
 
   useEffect(() => {
@@ -33,6 +37,17 @@ export function ApiStatus() {
   }
 
   const { redis } = state.health.services;
+  if (compact) {
+    return redis.status === 'up' ? (
+      <StatusRow
+        tone="good"
+        label="All systems operational"
+        detail={redis.latencyMs !== undefined ? `Redis ${redis.latencyMs} ms` : undefined}
+      />
+    ) : (
+      <StatusRow tone="bad" label="Redis unavailable" detail={redis.error} />
+    );
+  }
   return (
     <div className="space-y-2">
       <StatusRow tone="good" label="API server online" />
@@ -50,9 +65,9 @@ export function ApiStatus() {
 }
 
 const toneClasses = {
-  good: 'bg-emerald-500',
-  bad: 'bg-rose-500',
-  neutral: 'bg-slate-400 animate-pulse',
+  good: 'bg-success',
+  bad: 'bg-danger',
+  neutral: 'bg-fg-muted animate-pulse',
 } as const;
 
 function StatusRow({
@@ -66,9 +81,9 @@ function StatusRow({
 }) {
   return (
     <p className="flex items-center gap-2 text-sm" role="status">
-      <span className={`inline-block h-2.5 w-2.5 rounded-full ${toneClasses[tone]}`} />
-      <span className="font-medium">{label}</span>
-      {detail && <span className="text-slate-500">({detail})</span>}
+      <span className={cn('inline-block size-2 rounded-full', toneClasses[tone])} aria-hidden />
+      <span className="font-medium text-fg-secondary">{label}</span>
+      {detail && <span className="eh-numeric text-fg-muted">({detail})</span>}
     </p>
   );
 }

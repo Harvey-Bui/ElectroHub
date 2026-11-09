@@ -1,0 +1,123 @@
+/*
+ * Maps the design tokens (tokens.css) onto Tailwind's theme, so utilities
+ * such as `bg-surface`, `text-fg-muted`, `rounded-lg`, `shadow-md`,
+ * `font-mono`, `text-sm` and `duration-base` resolve to `var(--eh-…)`.
+ * `inline` keeps the var() reference, so switching data-theme re-colours
+ * everything without regenerating CSS.
+ */
+@theme inline {
+  /* Replace Tailwind's default palette: only semantic colours exist. */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-bg: var(--eh-bg);
+  --color-surface: var(--eh-surface);
+  --color-elevated: var(--eh-surface-elevated);
+  --color-sunken: var(--eh-surface-sunken);
+  --color-overlay: var(--eh-overlay);
+
+  --color-border: var(--eh-border);
+  --color-border-strong: var(--eh-border-strong);
+
+  --color-fg: var(--eh-text-primary);
+  --color-fg-secondary: var(--eh-text-secondary);
+  --color-fg-muted: var(--eh-text-muted);
+  --color-fg-inverse: var(--eh-text-inverse);
+
+  --color-accent: var(--eh-accent);
+  --color-accent-hover: var(--eh-accent-hover);
+  --color-accent-active: var(--eh-accent-active);
+  --color-accent-text: var(--eh-accent-text);
+  --color-accent-soft: var(--eh-accent-soft);
+  --color-accent-contrast: var(--eh-accent-contrast);
+
+  --color-success: var(--eh-success);
+  --color-success-soft: var(--eh-success-soft);
+  --color-warning: var(--eh-warning);
+  --color-warning-soft: var(--eh-warning-soft);
+  --color-danger: var(--eh-danger);
+  --color-danger-soft: var(--eh-danger-soft);
+  --color-danger-fill: var(--eh-danger-fill);
+
+  --color-focus: var(--eh-focus-ring);
+  --color-stage-from: var(--eh-stage-from);
+  --color-stage-to: var(--eh-stage-to);
+
+  /* Typography */
+  --font-sans: var(--eh-font-sans);
+  --font-mono: var(--eh-font-mono);
+
+  --text-xs: var(--eh-text-xs);
+  --text-xs--line-height: var(--eh-text-xs-lh);
+  --text-sm: var(--eh-text-sm);
+  --text-sm--line-height: var(--eh-text-sm-lh);
+  --text-base: var(--eh-text-base);
+  --text-base--line-height: var(--eh-text-base-lh);
+  --text-lg: var(--eh-text-lg);
+  --text-lg--line-height: var(--eh-text-lg-lh);
+  --text-xl: var(--eh-text-xl);
+  --text-xl--line-height: var(--eh-text-xl-lh);
+  --text-2xl: var(--eh-text-2xl);
+  --text-2xl--line-height: var(--eh-text-2xl-lh);
+  --text-3xl: var(--eh-text-3xl);
+  --text-3xl--line-height: var(--eh-text-3xl-lh);
+  --text-4xl: var(--eh-text-4xl);
+  --text-4xl--line-height: var(--eh-text-4xl-lh);
+  --text-5xl: var(--eh-text-5xl);
+  --text-5xl--line-height: var(--eh-text-5xl-lh);
+  --text-6xl: var(--eh-text-6xl);
+  --text-6xl--line-height: var(--eh-text-6xl-lh);
+
+  --tracking-tight: var(--eh-tracking-tight);
+  --tracking-wide: var(--eh-tracking-wide);
+
+  /* 4px spacing grid: every spacing utility is a multiple of this */
+  --spacing: var(--eh-space-unit);
+
+  --radius-xs: var(--eh-radius-xs);
+  --radius-sm: var(--eh-radius-sm);
+  --radius-md: var(--eh-radius-md);
+  --radius-lg: var(--eh-radius-lg);
+  --radius-xl: var(--eh-radius-xl);
+  --radius-2xl: var(--eh-radius-2xl);
+
+  --shadow-xs: var(--eh-shadow-xs);
+  --shadow-sm: var(--eh-shadow-sm);
+  --shadow-md: var(--eh-shadow-md);
+  --shadow-lg: var(--eh-shadow-lg);
+  --shadow-xl: var(--eh-shadow-xl);
+  --shadow-glow: var(--eh-shadow-glow);
+
+  --ease-standard: var(--eh-ease-standard);
+  --ease-emphasized: var(--eh-ease-emphasized);
+  --ease-exit: var(--eh-ease-exit);
+
+  --container-page: var(--eh-container-max);
+}
+
+/* Durations as utilities: `duration-fast`, `duration-base`, `duration-slow`. */
+@utility duration-fast {
+  transition-duration: var(--eh-duration-fast);
+}
+@utility duration-base {
+  transition-duration: var(--eh-duration-base);
+}
+@utility duration-slow {
+  transition-duration: var(--eh-duration-slow);
+}
+
+/* Breakpoints: keep in sync with --eh-bp-* in tokens.css. */
+@theme {
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+}
+
+/* `dark:` variant follows data-theme, not the OS setting. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));

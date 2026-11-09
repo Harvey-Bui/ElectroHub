@@ -95,6 +95,8 @@ export const PRODUCT_SORTS = ['newest', 'price-asc', 'price-desc', 'best-selling
 export type ProductSort = (typeof PRODUCT_SORTS)[number];
 
 export const productQuerySchema = z.object({
+  /** Free-text search: every word must appear in the name, brand or category. */
+  q: z.string().trim().min(1).max(100).optional(),
   category: categorySchema.optional(),
   brand: z.string().trim().min(1).optional(),
   featured: z.boolean().optional(),
