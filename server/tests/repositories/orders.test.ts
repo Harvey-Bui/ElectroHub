@@ -76,7 +76,7 @@ describe.skipIf(!redis)('OrderRepository (Redis)', () => {
       delivered: 1,
       cancelled: 0,
     });
-    expect((await orders.listByStatus('delivered')).map((o) => o.id)).toEqual([order.id]);
+    expect((await orders.listByStatus('delivered')).items.map((o) => o.id)).toEqual([order.id]);
   });
 
   it('supports the checkout flow: reserve stock, place order, release on cancel', async () => {

@@ -1,4 +1,8 @@
-/** An error that maps directly to an HTTP response. Throw it from services/routes. */
+/**
+ * An error that maps directly to an HTTP response:
+ *   { "error": { "code": "...", "message": "...", "details"?: ... } }
+ * Throw it from services; the error handler formats it.
+ */
 export class HttpError extends Error {
   constructor(
     public readonly status: number,
@@ -10,15 +14,23 @@ export class HttpError extends Error {
     this.name = 'HttpError';
   }
 
-  static badRequest(message: string, details?: unknown) {
-    return new HttpError(400, message, 'BAD_REQUEST', details);
+  static badRequest(message: string, details?: unknown, code = 'BAD_REQUEST') {
+    return new HttpError(400, message, code, details);
   }
 
-  static notFound(message = 'Resource not found') {
-    return new HttpError(404, message, 'NOT_FOUND');
+  static unauthorized(message = 'Authentication required', code = 'UNAUTHORIZED') {
+    return new HttpError(401, message, code);
   }
 
-  static conflict(message: string, details?: unknown) {
-    return new HttpError(409, message, 'CONFLICT', details);
+  static notFound(message = 'Resource not found', code = 'NOT_FOUND') {
+    return new HttpError(404, message, code);
+  }
+
+  static conflict(message: string, details?: unknown, code = 'CONFLICT') {
+    return new HttpError(409, message, code, details);
+  }
+
+  static tooManyRequests(message: string, retryAfterSeconds: number) {
+    return new HttpError(429, message, 'TOO_MANY_REQUESTS', { retryAfterSeconds });
   }
 }

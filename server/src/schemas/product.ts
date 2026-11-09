@@ -14,6 +14,28 @@ export const CATEGORIES = [
 export const categorySchema = z.enum(CATEGORIES);
 export type Category = z.infer<typeof categorySchema>;
 
+export const CATEGORY_INFO: Record<Category, { name: string; description: string }> = {
+  'gaming-laptops': {
+    name: 'Gaming Laptops',
+    description: 'High-refresh displays and dedicated GPUs for gaming on the go.',
+  },
+  laptops: {
+    name: 'Laptops',
+    description: 'Ultrabooks and everyday notebooks for work and study.',
+  },
+  pcs: { name: 'Desktop PCs', description: 'Gaming towers, workstations and compact desktops.' },
+  mice: { name: 'Mice', description: 'Wired and wireless mice for gaming and productivity.' },
+  monitors: { name: 'Monitors', description: 'OLED, IPS and ultrawide displays.' },
+  headphones: {
+    name: 'Headphones',
+    description: 'Noise-cancelling, gaming and audiophile headphones.',
+  },
+  microphones: {
+    name: 'Microphones',
+    description: 'USB and XLR microphones for streaming and podcasts.',
+  },
+};
+
 /** Flexible, per-category specifications (stored as JSON in the product hash). */
 export const specsSchema = z.record(
   z.string(),
@@ -21,26 +43,36 @@ export const specsSchema = z.record(
 );
 export type ProductSpecs = z.infer<typeof specsSchema>;
 
-export const productInputSchema = z.object({
-  id: idSchema,
+/** Editable product fields, without defaults. */
+const productFields = {
   name: z.string().trim().min(1).max(200),
   brand: z.string().trim().min(1).max(80),
   category: categorySchema,
   description: z.string().trim().min(1).max(5000),
   priceCents: z.number().int().min(0),
+  specs: specsSchema,
+  imageUrl: z.string().url(),
+  featured: z.boolean(),
+};
+
+export const productInputSchema = z.object({
+  ...productFields,
+  id: idSchema,
   stock: z.number().int().min(0),
   specs: specsSchema.default({}),
-  imageUrl: z.string().url(),
   featured: z.boolean().default(false),
   /** ISO timestamp; defaults to now. Seed data passes fixed dates. */
   createdAt: z.string().datetime().optional(),
 });
 export type ProductInput = z.input<typeof productInputSchema>;
 
-/** Fields that may be changed after creation. Stock is changed through the inventory repository. */
-export const productUpdateSchema = productInputSchema
-  .omit({ id: true, stock: true, createdAt: true })
-  .partial();
+/**
+ * Fields that may be changed after creation. Stock is changed through the
+ * inventory repository. Built from the default-free field list on purpose:
+ * in Zod 4, `.partial()` still applies `.default()` values, so deriving it
+ * from the input schema would reset `featured`/`specs` on every partial update.
+ */
+export const productUpdateSchema = z.object(productFields).partial();
 export type ProductUpdate = z.input<typeof productUpdateSchema>;
 
 export interface Product {

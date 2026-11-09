@@ -234,6 +234,10 @@ return 1
  * Moves the order between orders:status:* sets only if its current status is
  * one of the allowed sources. Returns {1, oldStatus}, {0, oldStatus} if the
  * transition is not allowed, or {-1, ''} if the order does not exist.
+ *
+ * Moving to 'cancelled' also reverses the order's effect on the revenue
+ * counter and the best-seller ranking, in the same atomic step, so two
+ * concurrent cancellations can't subtract twice.
  */
 export const ORDER_SET_STATUS = `
 local p, id, status = ARGV[1], ARGV[2], ARGV[3]
@@ -245,6 +249,17 @@ for i = 5, #ARGV do if ARGV[i] == old then allowed = true end end
 if not allowed then return {0, old} end
 redis.call('SMOVE', p .. '${N.ordersByStatus}:' .. old, p .. '${N.ordersByStatus}:' .. status, id)
 redis.call('HSET', key, 'status', status, 'updatedAt', ARGV[4])
+if status == 'cancelled' then
+  local total = tonumber(redis.call('HGET', key, 'totalCents') or '0')
+  redis.call('DECRBY', p .. '${N.statsRevenue}', total)
+  local items = cjson.decode(redis.call('HGET', key, 'items') or '[]')
+  local sales = p .. '${N.productsBySales}'
+  for _, item in ipairs(items) do
+    if redis.call('ZSCORE', sales, item.productId) then
+      redis.call('ZINCRBY', sales, -item.quantity, item.productId)
+    end
+  end
+end
 return {1, old}
 `;
 

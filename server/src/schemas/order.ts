@@ -15,6 +15,9 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   cancelled: [],
 };
 
+/** Statuses from which a customer may still cancel. */
+export const CUSTOMER_CANCELLABLE: readonly OrderStatus[] = ['pending', 'paid'];
+
 /** Line item captured at checkout. Name and price are snapshotted so later catalogue edits don't change history. */
 export const orderItemSchema = z.object({
   productId: idSchema,
@@ -24,11 +27,20 @@ export const orderItemSchema = z.object({
 });
 export type OrderItem = z.infer<typeof orderItemSchema>;
 
+/** Who to contact about the order, captured at checkout. */
+export const orderContactSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  name: z.string().trim().min(1).max(120),
+  phone: z.string().trim().max(30).optional(),
+});
+export type OrderContact = z.infer<typeof orderContactSchema>;
+
 export const orderInputSchema = z.object({
   customerId: idSchema,
   items: z.array(orderItemSchema).min(1),
   shippingAddress: addressSchema,
   shippingCents: z.number().int().min(0).default(0),
+  contact: orderContactSchema.optional(),
 });
 export type OrderInput = z.input<typeof orderInputSchema>;
 
@@ -42,6 +54,7 @@ export interface Order {
   shippingCents: number;
   totalCents: number;
   shippingAddress: z.infer<typeof addressSchema>;
+  contact: OrderContact | null;
   createdAt: string;
   updatedAt: string;
 }

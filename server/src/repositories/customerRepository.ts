@@ -70,7 +70,12 @@ export class CustomerRepository {
       customer.email,
       ...toHashPairs(customer),
     ]);
-    if (created !== 1) throw HttpError.conflict(`Email "${customer.email}" is already registered`);
+    if (created !== 1)
+      throw HttpError.conflict(
+        `Email "${customer.email}" is already registered`,
+        undefined,
+        'EMAIL_TAKEN',
+      );
     return customer;
   }
 
@@ -104,13 +109,45 @@ export class CustomerRepository {
       ]),
     );
     if (result === -1) return null;
-    if (result === 0) throw HttpError.conflict(`Email "${next.email}" is already registered`);
+    if (result === 0)
+      throw HttpError.conflict(
+        `Email "${next.email}" is already registered`,
+        undefined,
+        'EMAIL_TAKEN',
+      );
     return next;
   }
 
   /** Deletes profile, email lookup and cart. Orders are kept. */
   async delete(id: string): Promise<boolean> {
     return (await runScript(this.client, CUSTOMER_DELETE, [this.keys.prefix, id])) === 1;
+  }
+
+  /**
+   * Creates or refreshes the profile of a guest customer whose id comes from
+   * the customer cookie (no login in v1). Guests may share an email, so the
+   * email lookup is only claimed if no one has it yet (SET NX).
+   */
+  async saveGuestProfile(id: string, input: CustomerInput): Promise<Customer> {
+    const data = customerInputSchema.parse(input);
+    const existing = await this.findById(id);
+    const now = new Date().toISOString();
+    const customer: Customer = {
+      id,
+      email: data.email,
+      name: data.name,
+      phone: data.phone ?? existing?.phone ?? null,
+      address: data.address ?? existing?.address ?? null,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    };
+    await this.client
+      .multi()
+      .hSet(this.keys.customer(id), toHashPairs(customer))
+      .sAdd(this.keys.customers(), id)
+      .set(this.keys.customerEmail(customer.email), id, { condition: 'NX' })
+      .exec();
+    return customer;
   }
 
   async count(): Promise<number> {

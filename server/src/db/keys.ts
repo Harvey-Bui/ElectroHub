@@ -33,6 +33,10 @@
  * │ counter:order                │ String     │ INCR sequence for order ids               │
  * │ counter:customer             │ String     │ INCR sequence for customer ids            │
  * │ meta:schema-version          │ String     │ data-model version written by db:setup    │
+ * │ stats:revenue-cents          │ String     │ revenue of non-cancelled orders           │
+ * │ admin:{username}             │ Hash       │ admin account, scrypt password hash       │
+ * │ session:admin:{sha256(token)}│ Hash       │ admin session (TTL = session lifetime)    │
+ * │ ratelimit:{scope}:{subject}  │ String     │ failed-attempt counter (TTL = window)     │
  * └──────────────────────────────┴────────────┴───────────────────────────────────────────┘
  */
 export const KEY_NAMES = {
@@ -58,6 +62,10 @@ export const KEY_NAMES = {
   counterOrder: 'counter:order',
   counterCustomer: 'counter:customer',
   schemaVersion: 'meta:schema-version',
+  statsRevenue: 'stats:revenue-cents',
+  admin: 'admin',
+  adminSession: 'session:admin',
+  rateLimit: 'ratelimit',
 } as const;
 
 /** Letters that Unicode normalisation does not decompose into ASCII. */
@@ -117,6 +125,13 @@ export function createKeys(prefix: string) {
     counterOrder: () => k(n.counterOrder),
     counterCustomer: () => k(n.counterCustomer),
     schemaVersion: () => k(n.schemaVersion),
+    /** Revenue of all non-cancelled orders, in cents (INCRBY on order, DECRBY on cancel). */
+    statsRevenue: () => k(n.statsRevenue),
+    // Administration
+    admin: (username: string) => k(n.admin, username.toLowerCase()),
+    /** Keyed by SHA-256 of the session token, so a database dump does not reveal live tokens. */
+    adminSession: (tokenHash: string) => k(n.adminSession, tokenHash),
+    rateLimit: (scope: string, subject: string) => k(n.rateLimit, scope, subject),
   } as const;
 }
 

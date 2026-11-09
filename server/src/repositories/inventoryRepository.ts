@@ -92,7 +92,11 @@ export class InventoryRepository {
     ])) as [number, number];
     if (status === -1) throw HttpError.notFound(`Product "${productId}" not found`);
     if (status === 0) {
-      throw HttpError.conflict(`Not enough stock for "${productId}"`, { available: value });
+      throw HttpError.conflict(
+        `Not enough stock for "${productId}"`,
+        { available: value },
+        'INSUFFICIENT_STOCK',
+      );
     }
     return value;
   }

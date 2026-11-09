@@ -119,7 +119,11 @@ export class ProductRepository {
       ...toHashPairs(record),
     ]);
     if (created !== 1) {
-      throw HttpError.conflict(`Product "${record.id}" already exists`);
+      throw HttpError.conflict(
+        `Product "${record.id}" already exists`,
+        undefined,
+        'PRODUCT_EXISTS',
+      );
     }
     return { ...record, stock: data.stock };
   }

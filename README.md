@@ -12,10 +12,10 @@ persistence (AOF and RDB) turned on.
 | Testing  | Vitest, Supertest, Testing Library                         |
 | Tooling  | ESLint (flat config), Prettier, Docker Compose             |
 
-> Status: **database layer complete.** Redis repositories for products, inventory,
-> customers, carts and orders are implemented and covered by integration tests, and the
-> catalogue seed (21 products in 7 categories) works. The HTTP API so far only exposes
-> `GET /api/health`. Feature routes and services are next.
+> Status: **backend complete.** The REST API covers the catalogue, cart, checkout,
+> orders and administration (login, products, orders, low stock, dashboard), all backed
+> by Redis. **[API reference → docs/API.md](docs/API.md)**. The React storefront and
+> admin UI are next.
 
 ---
 
@@ -42,10 +42,13 @@ npm --prefix client install
 npm --prefix server run db:setup
 npm --prefix server run db:seed
 
-# 5. Run the API: http://localhost:4000/api/health
+# 5. Create the admin account. Set ADMIN_PASSWORD (12+ characters) in .env first.
+npm --prefix server run admin:create
+
+# 6. Run the API: http://localhost:4000/api/health
 npm --prefix server run dev
 
-# 6. In a second terminal, run the web app: http://localhost:5173
+# 7. In a second terminal, run the web app: http://localhost:5173
 npm --prefix client run dev
 ```
 
@@ -58,24 +61,26 @@ The root `package.json` only has shortcuts for these commands (`npm run db:up`,
 electrohub/
 ├── docker-compose.yml        Redis 7 with persistence (AOF everysec + RDB) and a healthcheck
 ├── .env.example              All environment variables (server, client, compose)
+├── docs/API.md               REST API reference (every endpoint, body, response, error)
 ├── server/                   Express API (independent npm package)
 │   ├── src/
 │   │   ├── config.ts         Loads and validates env vars with Zod (fails fast)
 │   │   ├── index.ts          Entry point: connects to Redis, starts HTTP, shuts down cleanly
-│   │   ├── app.ts            createApp(): Express app factory with injected dependencies
+│   │   ├── app.ts            buildApp(): wires repositories → services → routes
 │   │   ├── db/
 │   │   │   ├── redis.ts      Shared client, fail-fast connect, reconnect policy, graceful close
 │   │   │   ├── keys.ts       Single source of truth for the Redis key schema
 │   │   │   ├── scripts.ts    Lua scripts for atomic record + index updates
 │   │   │   ├── setup.ts      Persistence checks, schema version, reset
 │   │   │   └── seed/         Catalogue (21 products) and demo customers, idempotent
-│   │   ├── repositories/     products, inventory, customers, carts, orders (all Redis access)
-│   │   ├── services/         Business rules (checkout, …), coming next
-│   │   ├── routes/           HTTP routers mounted under /api
-│   │   ├── middleware/       Error handling, request validation
-│   │   ├── schemas/          Zod schemas and domain types
-│   │   └── lib/              Logger, HttpError
-│   ├── scripts/              db:setup, db:seed, db:reset CLIs
+│   │   ├── repositories/     products, inventory, customers, carts, orders, admins, rate limits
+│   │   ├── services/         catalog, cart, orders (checkout), auth, dashboard: business rules
+│   │   ├── controllers/      HTTP handlers: validate input, call one service, shape the response
+│   │   ├── routes/           Routers: catalog, shop (cart/checkout/orders), admin, health
+│   │   ├── middleware/       customer cookie, admin auth, error handler
+│   │   ├── schemas/          Zod domain schemas + HTTP input schemas (api.ts)
+│   │   └── lib/              crypto (scrypt, tokens), cookies, HttpError, logger
+│   ├── scripts/              db:setup, db:seed, db:reset, admin:create CLIs
 │   └── tests/                Vitest + Supertest (unit and real-Redis integration)
 └── client/                   React SPA (independent npm package)
     ├── vite.config.ts        Dev proxy /api → server, Vitest config
@@ -91,11 +96,13 @@ electrohub/
 ### Layering (server)
 
 ```
-routes  →  services  →  repositories  →  Redis
- (HTTP)    (business)    (keys + commands)
+routes → middleware → controllers  →  services  →  repositories  →  Redis
+(paths)  (cookies,     (HTTP in/out,    (business     (keys + commands,
+          auth)         Zod input)       rules)         Lua, MULTI)
 ```
 
-- **Routes** parse and validate input with Zod schemas and call services. They never touch Redis.
+- **Controllers** parse and validate input with the Zod schemas in `schemas/api.ts`, call
+  one service, and send `{ data }` or `{ data, pagination }`. They never touch Redis.
 - **Services** hold the business rules and combine repositories. Checkout, for example, is
   `inventory.reserve()` → `orders.create()` → `inventory.release()` if anything fails.
 - **Repositories** are the only code that builds Redis keys (through `db/keys.ts`) and sends
@@ -209,19 +216,26 @@ Both packages and Docker Compose read the **repository-root `.env`** file. The s
 reads `server/.env` when that file exists. Only variables prefixed with `VITE_` are sent to
 the browser.
 
-| Variable                    | Default                  | Used by                  |
-| --------------------------- | ------------------------ | ------------------------ |
-| `NODE_ENV`                  | `development`            | server                   |
-| `PORT`                      | `4000`                   | server                   |
-| `CORS_ORIGIN`               | `http://localhost:5173`  | server (comma-separated) |
-| `REDIS_URL`                 | `redis://localhost:6379` | server                   |
-| `REDIS_PASSWORD`            | _(empty)_                | server, compose          |
-| `REDIS_KEY_PREFIX`          | `electrohub:`            | server                   |
-| `REDIS_PORT`                | `6379`                   | compose (host port)      |
-| `LOW_STOCK_THRESHOLD`       | `5`                      | server (low-stock index) |
-| `CART_TTL_DAYS`             | `30`                     | server (cart expiry)     |
-| `VITE_API_BASE_URL`         | _(empty = same origin)_  | client                   |
-| `VITE_DEV_API_PROXY_TARGET` | `http://localhost:4000`  | client dev server        |
+| Variable                                                  | Default                                                   | Used by                         |
+| --------------------------------------------------------- | --------------------------------------------------------- | ------------------------------- |
+| `NODE_ENV`                                                | `development`                                             | server                          |
+| `PORT`                                                    | `4000`                                                    | server                          |
+| `CORS_ORIGIN`                                             | `http://localhost:5173`                                   | server (comma-separated)        |
+| `REDIS_URL`                                               | `redis://localhost:6379`                                  | server                          |
+| `REDIS_PASSWORD`                                          | _(empty)_                                                 | server, compose                 |
+| `REDIS_KEY_PREFIX`                                        | `electrohub:`                                             | server                          |
+| `REDIS_PORT`                                              | `6379`                                                    | compose (host port)             |
+| `LOW_STOCK_THRESHOLD`                                     | `5`                                                       | server (low-stock index)        |
+| `CART_TTL_DAYS`                                           | `30`                                                      | server (cart expiry)            |
+| `FREE_SHIPPING_THRESHOLD_CENTS`                           | `10000`                                                   | server (checkout)               |
+| `SHIPPING_FLAT_CENTS`                                     | `999`                                                     | server (checkout)               |
+| `COOKIE_SECRET`                                           | dev-only fallback; **required in production** (32+ chars) | server (cookie signing)         |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD`                       | `admin` / _(empty)_                                       | `admin:create` script only      |
+| `ADMIN_SESSION_TTL_HOURS`                                 | `8`                                                       | server                          |
+| `ADMIN_LOGIN_MAX_ATTEMPTS` / `ADMIN_LOGIN_WINDOW_MINUTES` | `5` / `15`                                                | server (login lockout)          |
+| `TRUST_PROXY`                                             | `false`                                                   | server (behind a reverse proxy) |
+| `VITE_API_BASE_URL`                                       | _(empty = same origin)_                                   | client                          |
+| `VITE_DEV_API_PROXY_TARGET`                               | `http://localhost:4000`                                   | client dev server               |
 
 ## Scripts
 
@@ -239,7 +253,13 @@ Both `server/` and `client/` have these scripts:
 
 ### Tests
 
-- `server/tests/app.test.ts`: HTTP behaviour through Supertest (health, 404, bad JSON, CORS).
+- `server/tests/app.test.ts`: HTTP behaviour without Redis (health, 404 format, bad JSON,
+  413, CORS, security headers).
+- `server/tests/api/*.test.ts`: every endpoint through Supertest on the real app and a real
+  Redis. Covers products and category filtering, sorting and validation; cart operations
+  and stock checks; checkout, including last-unit races and all-or-nothing reservation;
+  order cancellation and restocking; admin authentication (cookie flags, lockout, logout,
+  protected routes); and admin product, order, inventory and dashboard endpoints.
 - `server/tests/repositories/*.test.ts` and `server/tests/seed.test.ts` run against a
   **real Redis**, under an isolated key prefix (`electrohub:test:{suite}:{pid}:`) that is
   deleted afterwards, so they never touch seeded data. They cover index maintenance,

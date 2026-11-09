@@ -6,6 +6,7 @@ import {
   orderInputSchema,
   type Order,
   type OrderInput,
+  type OrderContact,
   type OrderItem,
   type OrderStatus,
 } from '../schemas/order.js';
@@ -27,6 +28,7 @@ function toHashPairs(order: Order): string[] {
     'shippingCents', String(order.shippingCents),
     'totalCents', String(order.totalCents),
     'shippingAddress', JSON.stringify(order.shippingAddress),
+    'contact', order.contact ? JSON.stringify(order.contact) : '',
     'createdAt', order.createdAt,
     'updatedAt', order.updatedAt,
   ]; // prettier-ignore
@@ -43,6 +45,7 @@ function fromHash(hash: Record<string, string>): Order {
     shippingCents: Number(hash.shippingCents),
     totalCents: Number(hash.totalCents),
     shippingAddress: JSON.parse(hash.shippingAddress!) as Order['shippingAddress'],
+    contact: hash.contact ? (JSON.parse(hash.contact) as OrderContact) : null,
     createdAt: hash.createdAt!,
     updatedAt: hash.updatedAt!,
   };
@@ -85,6 +88,7 @@ export class OrderRepository {
       shippingCents: data.shippingCents,
       totalCents: subtotalCents + data.shippingCents,
       shippingAddress: data.shippingAddress,
+      contact: data.contact ?? null,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     };
@@ -94,7 +98,8 @@ export class OrderRepository {
       .hSet(this.keys.order(id), toHashPairs(order))
       .zAdd(this.keys.orders(), { score: now.getTime(), value: id })
       .zAdd(this.keys.ordersByCustomer(order.customerId), { score: now.getTime(), value: id })
-      .sAdd(this.keys.ordersByStatus(order.status), id);
+      .sAdd(this.keys.ordersByStatus(order.status), id)
+      .incrBy(this.keys.statsRevenue(), order.totalCents);
     for (const item of order.items) {
       tx.zIncrBy(this.keys.productsBySales(), item.quantity, item.productId);
     }
@@ -134,10 +139,26 @@ export class OrderRepository {
   }
 
   /** Orders currently in a status, newest first. */
-  async listByStatus(status: OrderStatus): Promise<Order[]> {
+  async listByStatus(status: OrderStatus, offset = 0, limit = 20): Promise<OrderPage> {
     const ids = await this.client.sMembers(this.keys.ordersByStatus(status));
-    const orders = await this.load(ids);
-    return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    if (ids.length === 0) return { items: [], total: 0 };
+    // Sort by placement time using the `orders` time index, then load only one page.
+    const placedAt = await this.client.zmScore(this.keys.orders(), ids);
+    const page = ids
+      .map((id, i) => ({ id, at: placedAt[i] ?? 0 }))
+      .sort((a, b) => b.at - a.at || b.id.localeCompare(a.id))
+      .slice(offset, offset + limit)
+      .map((entry) => entry.id);
+    return { items: await this.load(page), total: ids.length };
+  }
+
+  async count(): Promise<number> {
+    return this.client.zCard(this.keys.orders());
+  }
+
+  /** Revenue of all non-cancelled orders, in cents. */
+  async revenueCents(): Promise<number> {
+    return Number((await this.client.get(this.keys.statsRevenue())) ?? 0);
   }
 
   /**
@@ -156,7 +177,11 @@ export class OrderRepository {
 
     if (result === -1) throw HttpError.notFound(`Order "${id}" not found`);
     if (result === 0) {
-      throw HttpError.conflict(`Cannot change order "${id}" from "${previous}" to "${status}"`);
+      throw HttpError.conflict(
+        `Cannot change order "${id}" from "${previous}" to "${status}"`,
+        { from: previous, to: status, allowed: ORDER_TRANSITIONS[previous as OrderStatus] ?? [] },
+        'INVALID_STATUS_TRANSITION',
+      );
     }
     return (await this.findById(id))!;
   }
