@@ -1,0 +1,17 @@
+{
+  "name": "electrohub",
+  "private": true,
+  "description": "ElectroHub - NoSQL-powered electronics e-commerce platform (Redis-backed). Convenience scripts only; server/ and client/ are independent packages.",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "db:up": "docker compose up -d redis",
+    "db:down": "docker compose down",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix server run build && npm --prefix client run build",
+    "lint": "npm --prefix server run lint && npm --prefix client run lint",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
+    "test": "npm --prefix server test && npm --prefix client test",
+    "format": "npm --prefix server run format && npm --prefix client run format"
+  }
+}
