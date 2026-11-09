@@ -12,6 +12,8 @@
     "lint": "npm --prefix server run lint && npm --prefix client run lint",
     "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
     "test": "npm --prefix server test && npm --prefix client test",
-    "format": "npm --prefix server run format && npm --prefix client run format"
+    "format": "npm --prefix server run format && npm --prefix client run format",
+    "db:setup": "npm --prefix server run db:setup",
+    "db:seed": "npm --prefix server run db:seed"
   }
 }

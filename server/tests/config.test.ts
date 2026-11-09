@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from '../src/config.js';
-import { createKeys } from '../src/db/keys.js';
+import { createKeys, slugify } from '../src/db/keys.js';
 
 describe('loadConfig', () => {
   it('applies defaults when variables are missing', () => {
@@ -41,9 +41,26 @@ describe('createKeys', () => {
     const keys = createKeys('eh:');
 
     expect(keys.product('p1')).toBe('eh:product:p1');
-    expect(keys.inventory('p1')).toBe('eh:inventory:p1');
-    expect(keys.cart('c1')).toBe('eh:cart:c1');
-    expect(keys.orderItems('o1')).toBe('eh:order:o1:items');
+    expect(keys.products()).toBe('eh:products');
     expect(keys.productsByCategory('laptops')).toBe('eh:products:category:laptops');
+    expect(keys.productsByBrand('asus')).toBe('eh:products:brand:asus');
+    expect(keys.inventory()).toBe('eh:inventory');
+    expect(keys.inventoryLowStock()).toBe('eh:inventory:low-stock');
+    expect(keys.customer('cus_000001')).toBe('eh:customer:cus_000001');
+    expect(keys.customerEmail('Ann@Example.com')).toBe('eh:customer:email:ann@example.com');
+    expect(keys.cart('cus_000001')).toBe('eh:cart:cus_000001');
+    expect(keys.order('ord_000001')).toBe('eh:order:ord_000001');
+    expect(keys.ordersByCustomer('cus_000001')).toBe('eh:orders:customer:cus_000001');
+    expect(keys.ordersByStatus('paid')).toBe('eh:orders:status:paid');
+    expect(keys.counterOrder()).toBe('eh:counter:order');
+  });
+});
+
+describe('slugify', () => {
+  it('builds brand index slugs', () => {
+    expect(slugify('Western Digital')).toBe('western-digital');
+    expect(slugify('RØDE')).toBe('rode');
+    expect(slugify('Café Électrique')).toBe('cafe-electrique');
+    expect(slugify('  ASUS ROG ')).toBe('asus-rog');
   });
 });

@@ -30,6 +30,8 @@ const envSchema = z.object({
     .optional()
     .transform((value) => (value ? value : undefined)),
   REDIS_KEY_PREFIX: z.string().min(1).default('electrohub:'),
+  LOW_STOCK_THRESHOLD: z.coerce.number().int().min(0).default(5),
+  CART_TTL_DAYS: z.coerce.number().int().min(1).default(30),
 });
 
 export type AppConfig = {
@@ -40,6 +42,12 @@ export type AppConfig = {
     url: string;
     password: string | undefined;
     keyPrefix: string;
+  };
+  store: {
+    /** Products with stock at or below this value appear in the low-stock ranking. */
+    lowStockThreshold: number;
+    /** Idle carts expire after this many days. */
+    cartTtlSeconds: number;
   };
 };
 
@@ -61,6 +69,10 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): AppConfig {
       url: env.REDIS_URL,
       password: env.REDIS_PASSWORD,
       keyPrefix: env.REDIS_KEY_PREFIX,
+    },
+    store: {
+      lowStockThreshold: env.LOW_STOCK_THRESHOLD,
+      cartTtlSeconds: env.CART_TTL_DAYS * 24 * 60 * 60,
     },
   };
 }
