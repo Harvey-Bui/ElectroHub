@@ -31,3 +31,6 @@ appendonlydir/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local Claude Code / preview settings
+.claude/

@@ -14,8 +14,11 @@ persistence (AOF and RDB) turned on.
 
 > Status: **feature complete for v1.** A shopper can browse, search, check out, and view
 > or cancel their orders. An admin can sign in at `/admin` to manage orders, products and
-> stock. Everything runs on the Redis-backed REST API
-> (**[API reference → docs/API.md](docs/API.md)**).
+> stock. Everything runs on the Redis-backed REST API.
+>
+> **New to the project? Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**: how the
+> frontend, backend and database fit together, with diagrams of the main flows. The
+> endpoint reference is [docs/API.md](docs/API.md).
 
 ---
 
@@ -61,7 +64,9 @@ The root `package.json` only has shortcuts for these commands (`npm run db:up`,
 electrohub/
 ├── docker-compose.yml        Redis 7 with persistence (AOF everysec + RDB) and a healthcheck
 ├── .env.example              All environment variables (server, client, compose)
+├── docs/ARCHITECTURE.md      How everything fits together: database, API, frontend, flows
 ├── docs/API.md               REST API reference (every endpoint, body, response, error)
+├── start.cmd                 Windows one-click launcher (Redis + API + website)
 ├── server/                   Express API (independent npm package)
 │   ├── src/
 │   │   ├── config.ts         Loads and validates env vars with Zod (fails fast)
